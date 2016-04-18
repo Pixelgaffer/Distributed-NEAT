@@ -3,9 +3,23 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.Application.index
+GET     /                                       controllers.Application.index
+
+
+
+# Create Experiment Class
+POST    /class/:name/update/:platform           @controllers.Classes.update(name: String, platform: String)
+
+# Start Experiment
+POST     /class/:name/instantiate               @controllers.Classes.start(name: String)
+
+# Get Binaries
+GET      /class/:name/:platform                 @controllers.Classes.binary(name: String, platform: String)
+
+
+# Worker WebSocket
+GET      /worker/:platform                      controllers.Workers.socket(platform: String)
+
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.at(path="/public", file)
-
-    
+GET     /assets/*file                           controllers.Assets.at(path="/public", file)
