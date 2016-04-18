@@ -34,10 +34,10 @@ class Species(var representant: Individual) {
 		individuals find { i =>
 			value -= i.fitness
 			value <= 0
-		} getOrElse individuals.takeRight(1).head
+		} getOrElse individuals.last
 	}
 
-	def produceOffspring(n: Int, speciesSelector: () => Species)(implicit args: EvolutionParameters): Seq[Individual] = {
+	def produceOffspring(n: Int, tracker: InnovationTracker, speciesSelector: () => Species)(implicit args: EvolutionParameters): Seq[Individual] = {
 		0 until n map {i =>
 			if(i == 0 && n > 5) {
 				new Individual(individuals maxBy (_.fitness))
@@ -45,7 +45,7 @@ class Species(var representant: Individual) {
 			else if(individuals.size == 1) {
 				val mom = roulletteWheel()
 				val baby = new Individual(mom)
-				baby.mutate()
+				baby.mutate(tracker)
 				baby
 			}
 			else {
@@ -57,7 +57,7 @@ class Species(var representant: Individual) {
 				}
 
 				val baby = mom.mate(dad)
-				baby.mutate()
+				baby.mutate(tracker)
 				baby
 			}
 		}

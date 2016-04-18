@@ -13,12 +13,14 @@ class NEAT(implicit val args: EvolutionParameters) {
 
 	var generation = 0
 
+	val tracker = new InnovationTracker
+
 	private def speciesRouletteWheel(sum: Double)(): Species = {
 		var value = random.nextDouble() * sum
 		species find { s =>
 			value -= s.averageFitness
 			value <= 0
-		} getOrElse species.takeRight(1).head
+		} getOrElse species.last
 	}
 
 	def step(): Unit = {
@@ -42,7 +44,6 @@ class NEAT(implicit val args: EvolutionParameters) {
 		}
 
 		species = species filter (_.individuals.nonEmpty)
-		species foreach (_.clear())
 
 		if(species.size > args.numSpeciesTarget) {
 			args.compatibilityThreshhold += args.compatibilityModifier
@@ -64,11 +65,13 @@ class NEAT(implicit val args: EvolutionParameters) {
 			var nOffspring = (s.averageFitness / fitnessSum * population.size).toInt
 			if(s == bestSpecies)
 				nOffspring += population.size - distributed
-			s.produceOffspring(nOffspring, speciesRouletteWheel(fitnessSum))
+			s.produceOffspring(nOffspring, tracker, speciesRouletteWheel(fitnessSum))
 		}
 
+		// TODO: save generation
 
-
+		species foreach (_.clear())
+		tracker.clear()
 	}
 
 }
