@@ -1,6 +1,6 @@
 package neat
 
-import json.EvolutionParameters
+import json._
 import util.Globals._
 
 class Species(var representant: Individual) {
@@ -37,7 +37,7 @@ class Species(var representant: Individual) {
 		} getOrElse individuals.last
 	}
 
-	def produceOffspring(n: Int, tracker: InnovationTracker, speciesSelector: () => Species)(implicit args: EvolutionParameters): Seq[Individual] = {
+	def produceOffspring(n: Int, tracker: InnovationTracker, speciesSelector: () => Species)(implicit args: EvolutionParameters, meta: ExperimentMeta): Seq[Individual] = {
 		0 until n map {i =>
 			if(i == 0 && n > 5) {
 				new Individual(individuals maxBy (_.fitness))

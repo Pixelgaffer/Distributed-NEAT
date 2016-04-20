@@ -8,13 +8,29 @@ GET     /                                       controllers.Application.index
 
 
 # Create Experiment Class
-POST    /class/:name/update/:platform           @controllers.Classes.update(name: String, platform: String)
+POST    /class/:name/update/:platform           controllers.Classes.update(name: String, platform: String)
 
 # Start Experiment
-POST     /class/:name/instantiate               @controllers.Classes.start(name: String)
+POST     /class/:name/instantiate               controllers.Classes.start(name: String)
 
 # Get Binaries
-GET      /class/:name/:platform                 @controllers.Classes.binary(name: String, platform: String)
+GET      /class/:name/bin/:platform             controllers.Classes.binary(name: String, platform: String)
+
+# Get Classes
+GET      /classes                               controllers.Classes.classes()
+
+#Get Class
+GET      /class/:name                           controllers.Classes.classs(name: String)
+
+
+# Get Experiments
+GET      /experiments                           controllers.Experiments.experiments()
+
+# Get Experiment
+GET      /experiment/:id                        controllers.Experiments.experiment(id: Int)
+
+# Get Generation
+GET      /experiment/:id/:generation            controllers.Experiments.generation(id: Int, generation: Int)
 
 
 # Worker WebSocket

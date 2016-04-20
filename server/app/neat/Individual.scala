@@ -1,6 +1,6 @@
 package neat
 
-import json.EvolutionParameters
+import json._
 import util.Globals._
 
 case class Connection(from: Int, to: Int, var weight: Double, var disabled: Boolean, innovation: Int) {
@@ -9,16 +9,49 @@ case class Connection(from: Int, to: Int, var weight: Double, var disabled: Bool
 	}
 }
 
-class Individual(var genome: List[Connection], var species: Species) {
+class Individual(var genome: List[Connection], var species: Species)(implicit meta: ExperimentMeta) {
 
 	var fitness: Double = -1
 
-	var nodes = genome flatMap (c => List(c.to, c.from)) distinct
+	var nodes = genome.flatMap (c => List(c.to, c.from)) ++ (0 until meta.specialNodes) distinct
 
-	def this(clone: Individual) {
-		this(clone.genome.clone(), clone.species)
+	def this(clone: Individual)(implicit meta: ExperimentMeta) {
+		this(clone.genome map (c => new Connection(c)), clone.species)
 	}
 
+	def this(string: String)(implicit meta: ExperimentMeta) {
+		this(List(), null)
+
+		fitness = string.split("\n")(0).split(" ")(1).toDouble
+
+		string split("\n") drop 1 foreach { line =>
+			val split = line split(" ")
+			val from = split(0).toInt
+			val to = split(1).toInt
+			val weight = split(2).toDouble
+			val disabled = if(split(3) == "0") false else true
+			val innovation = split(4).toInt
+			genome = new Connection(from, to, weight, disabled, innovation) :: genome
+		}
+	}
+
+	def toString(compress: Boolean): String = {
+		val string = new StringBuilder
+
+		string.append(s"${genome filterNot (compress && _.disabled) size}")
+		if(!compress)
+			string.append(s" $fitness")
+		string.append("\n")
+
+		for(gene <- genome.reverse if !compress || !gene.disabled) {
+			string.append(s"${gene.from} ${gene.to} ${gene.weight}")
+			if(!compress)
+				string.append(s" ${if(gene.disabled) 0 else 1} ${gene.innovation}")
+			string.append("\n")
+		}
+
+		string.mkString
+	}
 
 
 	def dist(individual: Individual)(implicit args: EvolutionParameters): Double = {
@@ -32,22 +65,28 @@ class Individual(var genome: List[Connection], var species: Species) {
 
 		val higher = List(i, j).maxBy(_.head.innovation)
 		val lower = List(i, j).minBy(_.head.innovation)
-		while(higher.head.innovation > lower.head.innovation) {
+		var meh = higher
+		while(meh.head.innovation > lower.head.innovation) {
 			excessGenes += 1
+			meh = meh.tail
 		}
+		if(i == higher)
+			i = meh
+		else
+			j = meh
 
 		while(i.nonEmpty && j.nonEmpty) {
 			if(i.head.innovation > j.head.innovation) {
 				i = i.tail
 				disjointGenes += 1
 			}
-			if(i.head.innovation == j.head.innovation) {
+			else if(i.head.innovation == j.head.innovation) {
 				weightDifference += (i.head.weight - j.head.weight).abs
 				matchingGenes += 1
 				i = i.tail
 				j = j.tail
 			}
-			if(j.head.innovation > i.head.innovation) {
+			else if(j.head.innovation > i.head.innovation) {
 				j = j.tail
 				disjointGenes += 1
 			}

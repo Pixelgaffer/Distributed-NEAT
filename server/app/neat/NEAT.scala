@@ -1,19 +1,24 @@
 package neat
 
-import json.EvolutionParameters
+import json._
 import util.Globals._
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class NEAT(implicit val args: EvolutionParameters) {
+class NEAT()(implicit val args: EvolutionParameters, implicit val meta: ExperimentMeta) {
 
 	var species = List[Species]()
 	var population = List[Individual]()
+	val tracker = new InnovationTracker
+
+
+	var className: String = null
+	var experiment: Int = -1
 
 	var generation = 0
-
-	val tracker = new InnovationTracker
+	var stop = false
+	var running = false
 
 	private def speciesRouletteWheel(sum: Double)(): Species = {
 		var value = random.nextDouble() * sum
@@ -25,9 +30,6 @@ class NEAT(implicit val args: EvolutionParameters) {
 
 	def step(): Unit = {
 		generation += 1
-
-		// Evaluates the population
-		val evaluated = WorkerManager.evalPopulation(population)
 
 		// Speciates the population
 		population foreach { individual =>
@@ -53,12 +55,9 @@ class NEAT(implicit val args: EvolutionParameters) {
 			args.compatibilityThreshhold = args.compatibilityThreshhold.max(args.compatibilityModifier)
 		}
 
-		// Waits for the evaluation to have finished
-		Await.ready(evaluated, 0 nanos)
-
 		// Breeds the population
 		val fitnessSum = species map (_.calcAverageFitness()) sum
-		val distributed = (species map[Int] (_.averageFitness / fitnessSum * population.size) sum) toInt
+		val distributed = (species map (_.averageFitness.*(population.size./(fitnessSum)).toInt) sum) toInt
 		val bestSpecies = species maxBy (_.averageFitness)
 
 		population = species flatMap { s =>
@@ -68,10 +67,11 @@ class NEAT(implicit val args: EvolutionParameters) {
 			s.produceOffspring(nOffspring, tracker, speciesRouletteWheel(fitnessSum))
 		}
 
-		// TODO: save generation
-
 		species foreach (_.clear())
 		tracker.clear()
+
+		// Evaluates the population
+		Await.ready(WorkerManager.evalPopulation(population), 10 days)
 	}
 
 }
