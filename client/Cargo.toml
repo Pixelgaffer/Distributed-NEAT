@@ -1,0 +1,8 @@
+[package]
+name = "client"
+version = "0.1.0"
+authors = ["Mrmaxmeier <Mrmaxmeier@gmail.com>"]
+
+[dependencies]
+websocket = "~0.17"
+clap = "2"
