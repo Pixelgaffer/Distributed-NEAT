@@ -8,7 +8,7 @@ import scala.util.Random
 object Globals {
 	val random = new Random
 
-	def stringify(population: List[Individual]): String = {
+	def stringify(population: Seq[Individual], simplify: Boolean): String = {
 		val string = new StringBuilder
 
 		string.append(s"${population.size}\n")

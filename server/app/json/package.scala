@@ -23,7 +23,7 @@ package object json {
 	}
 
 	implicit val experimentMetaFormat = Json.format[ExperimentMeta]
-	case class ExperimentMeta(populationSize: Int, inputNeurons: Int, hasBias: Boolean, hasRandom: Boolean, outputNeurons: Int) {
+	case class ExperimentMeta(populationSize: Int, inputNeurons: Int, hasBias: Boolean, hasRandom: Boolean, outputNeurons: Int, evaluationTpe: Int, evaluationSize: Int) {
 		val sensors = inputNeurons + (if(hasBias) 1 else 0) + (if(hasRandom) 1 else 0)
 		val specialNodes = sensors + outputNeurons
 		def json = Json.toJson(this)
