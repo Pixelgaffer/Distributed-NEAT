@@ -18,7 +18,7 @@ object Experiments extends Controller {
 		//TODO
 		NeatManager.loadedNEATs.get(id) match {
 			case Some(neat) => if(!neat.running) Some(neat) else None
-			case None => Some()
+			case None => Some(NeatManager.loadFrom(classFromId(id), id, ))
 		}
 		true
 	}
@@ -36,7 +36,7 @@ object Experiments extends Controller {
 			case Some(neat) =>  {
 				val res = neat.stop
 				neat.stop = true
-				res
+				!res
 			}
 			case None => false
 		}
